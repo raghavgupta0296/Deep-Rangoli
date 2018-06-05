@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import tensorflow as tf
-import visualize_images
 import preprocess_image
 import numpy as np
 import load_data
@@ -14,12 +12,14 @@ batch_size = 32
 def visualize_generated(vis):
     print("Visualizing")
     for i in range(len(vis)):
-        vis[i] = ((vis[i] + 1) / 2) * 255.0
+        vis[i] = vis[i]*255
+        # print(np.max(vis[i]), np.min(vis[i]))
         cv2.imwrite("./generated/generated%d.png" % i, vis[i])
 
 
 input_batch = tf.placeholder(tf.float32, shape=[batch_size, 189, 189, 1])
-noise = tf.placeholder(tf.float32, shape=[batch_size, 12*12*3])  # noise dims
+# noise = tf.placeholder(tf.float32, shape=[batch_size, 12*12*10])  # noise dims
+noise = tf.placeholder(tf.float32, shape=[batch_size, 20])  # noise dims
 keep_prob = tf.placeholder(tf.float32)
 is_training = tf.placeholder(tf.bool)
 
@@ -37,7 +37,9 @@ def generator_model():  # architecture of generator - remove bias?
     activation = leaky_relu
     with tf.variable_scope("generator"):
         print("Generator Shapes")
-        net = tf.reshape(noise, [-1, 12, 12, 3])
+        net = tf.layers.dense(noise,units=12*12*3,activation=activation)
+        print(net.get_shape())
+        net = tf.reshape(net, [-1, 12, 12, 3])
         print(net.get_shape())
         net = tf.layers.conv2d_transpose(net, 64, kernel_size=5, strides=2, padding='same', activation=activation)
         print(net.get_shape())
@@ -51,7 +53,8 @@ def generator_model():  # architecture of generator - remove bias?
         net = tf.layers.conv2d_transpose(net, 32, kernel_size=5, strides=2, padding='same', activation=activation)
         print(net.get_shape())
         # net = tf.contrib.layers.batch_norm(net, is_training=is_training)
-        net = tf.layers.conv2d(net, 1, 4, activation=tf.nn.tanh)
+        # net = tf.layers.conv2d(net, 1, 4, activation=tf.nn.tanh)
+        net = tf.layers.conv2d(net, 1, 4, activation=tf.nn.relu)
         print(net.get_shape())
         return net
 
@@ -137,6 +140,7 @@ for epoch_i in range(1000):
                 feed_dict={noise: noise_vals, input_batch: data, keep_prob: 0.7, is_training: True})
             print("discriminator loss: ", d_loss_, "; Generated loss: ", g_loss_)
 
+        noise_vals = np.random.uniform(0, 1, noise.get_shape())
         generated_im_ = sess.run([generator],
                                  feed_dict={noise: noise_vals, input_batch: data, keep_prob: 1.0, is_training: False})
         generated_im_ = np.squeeze(generated_im_, 0)

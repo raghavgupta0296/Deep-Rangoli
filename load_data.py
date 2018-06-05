@@ -13,6 +13,7 @@ def load(dataset_path="./deep rangoli dataset/"):
     for class_i in classes:
         for im in os.listdir(dataset_path + class_i):
             i = cv2.imread(dataset_path + class_i + "/" + im, 0)
+            i = 255-i
             # i = cv2.GaussianBlur(i,(3,3),0)
             # auto-canny
             # v = np.median(i)
@@ -28,7 +29,8 @@ def load(dataset_path="./deep rangoli dataset/"):
             cv2.imwrite("./cannied/"+class_i+"/"+im, i)
             i = np.expand_dims(i,-1)
             try:
-                i = (i / 255.0) * 2 - 1
+                # i = (i / 255.0) * 2 - 1
+                # i = i  / 255
                 images.append(i)
             except:
                 print("Error here")
@@ -37,6 +39,8 @@ def load(dataset_path="./deep rangoli dataset/"):
                 exit()
 
     print("Read ", len(images), " images")
-    return np.array(images)
+    images = np.array(images)
+    print(images.shape)
+    return images
 
-load()
+# load()

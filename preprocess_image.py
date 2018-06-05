@@ -6,6 +6,7 @@ import random
 
 
 def preprocess_image(ims):
+    # Rotation, flipping to images for data augmentation
     new_ims = []
     ims = np.array(ims)
     for im in ims:
